@@ -37,7 +37,7 @@ def main():
 
 
     # Initial guess of index of refraction of ar coating
-    n_ar = [math.sqrt(2), math.sqrt(5.2)]
+    n_ar = np.array([math.sqrt(2), math.sqrt(5.2)])
 
     # SETUP LAYERS
     optics_type = "lens" # either "lens" or "lenslet"
@@ -45,8 +45,15 @@ def main():
     if optics_type == "lens":
         n_ar_flipped = np.flipud(n_ar)
         t_ar_flipped = np.flipud(t_ar)
-        n_array = [n_vacuum, n_ar, n_substrate, n_ar_flipped, n_vacuum]
-        t_array = [0, t_ar, t_substrate, t_ar_flipped]
+        n_array = np.concatenate( [ [n_vacuum], n_ar, [n_substrate], n_ar_flipped, [n_vacuum] ])
+        
+        t_array = np.concatenate([ [0], t_ar, [t_substrate], t_ar_flipped])
+        
+    if optics_type == "lenslet":
+        n_array = np.concatenate([[n_vacuum], n_ar, [n_substrate]])
+
+                            
+                            
 
     print(n_array)
     print(t_array)
@@ -69,11 +76,6 @@ def ReadTransmissionData(filepath: str, filename: str):
             f = f + 1 # a counter
                                                                                          
     return freq_array, T_array
-
-
-   
-
-
 
 
 if __name__ == "__main__":
