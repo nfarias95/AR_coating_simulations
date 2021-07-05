@@ -19,6 +19,7 @@ def main():
     #insert desired column here:
     freq_column = 2
     data_column = 3
+    var_column = 1 # column containing a variation parameter (ex: radius, height, spacing). For simulations only. Set -1 if no parameters are varying
     
     #insert desired frequency band here
     #band = np.array([34, 99])  # FB1 
@@ -26,13 +27,22 @@ def main():
     band = np.array([77, 224]) # FB3
     
     #read the data
-    freq_array, trans_array, title = read_csv_file(f_loc, freq_column, data_column)
+    freq_array, trans_array, var_array, title = read_csv_file(f_loc, freq_column,  data_column, var_column)
        
-    print("Frequency: \n", freq_array)
-    print("Transmission: \n", trans_array)
+    # split the data if there are varying parameters
+    
+    if var_column >= 0:
+         freq_array, trans_array, var_values  = split_data(var_array, freq_array, trans_array)
+    else:
+        var_values = []
+         
+    print("Size of frequency and transmission: ", len(freq_array), len(trans_array))
+       
+    #print("Frequency: \n", freq_array)
+    #print("Transmission: \n", trans_array)
        
     # Plot the data
-    plot_results(freq_array, trans_array, title, band)
+    plot_results(freq_array, trans_array, var_values, title, band)
     
     # Calculate statistics
     mean_transmission = np.mean( trans_array[band[0]: band[1] ])
@@ -42,13 +52,62 @@ def main():
     
     
 ########### end of main
+def split_data(var_array:np.ndarray, freq_array:np.ndarray, trans_array:np.ndarray):
+    """[summary]
+
+    Args:
+        var_array (np.ndarray): array with varying parameter
+        freq_array (np.ndarray): array with all frequency data
+        trans_array (np.ndarray): array with all transmission data
+    """
+    print("Separating the data.")
+    numpoints = len(var_array) # total number of points in var_array
     
-def plot_results(freq_array, trans_array, title, band):
+    var_old = var_array[0]
     
-    plt.scatter(freq_array, trans_array)
+    var_values = np.array([var_old]) # start an array to store the varying values
+    
+    for i in range(0, numpoints):
+        var = var_array[i]
+        
+        if var != var_old:
+            print("var: ", var)
+            var_values = np.append(var_values, var)
+            
+        
+        var_old = var
+    print("Varying values: ", var_values)
+    #calculate number of variations:
+    num_var = len(var_values)
+    num_new_rows = int( len(var_array)/num_var)
+    print("Number of varitations: ", num_var)
+    print("Number of rows: ", num_new_rows)
+    
+    # divide the data into more arrays
+    freq_array_new = freq_array[0:num_new_rows] # the frequency array does not change, take the first ones
+    trans_array_new = np.zeros((num_new_rows, num_var))
+    
+    # send values over
+    for i in range(0, num_var):
+        trans_array_new[:, i] = trans_array[i*num_new_rows:(i+1)*num_new_rows]
+        
+    return freq_array_new, trans_array_new, var_values    
+    
+    
+    
+def plot_results(freq_array, trans_array, var_values, title, band):
+    
+    plt.figure(10)
+    if len(var_values) > 0:
+        for i in range(0, len(var_values)):
+            plt.scatter(freq_array, trans_array[:, i], label=str(var_values[i]))
+    else:
+        plt.scatter(freq_array, trans_array)
+        
     plt.xlabel("Frequency [GHz]")
     plt.ylabel("Transmission")
     plt.title(title)
+    plt.legend()
     
     # add a line at 95%
     plt.axhline(y=0.95, color = 'r', linestyle='-.', linewidth = 0.5)
@@ -59,7 +118,8 @@ def plot_results(freq_array, trans_array, title, band):
         
     plt.show()
     
-def read_csv_file(f_loc:str, x_column:int, y_column:int):
+    
+def read_csv_file(f_loc:str, x_column:int, y_column:int, z_column:int):
     """ This function reads a csv file
 
     Args:
@@ -106,6 +166,7 @@ def read_csv_file(f_loc:str, x_column:int, y_column:int):
         
     freq_array = np.zeros(csvreader.line_num -1) # frequency array
     trans_array = np.zeros(csvreader.line_num -1) # transmission array
+    var_array = np.zeros(csvreader.line_num -1) # varying field (ex., radius, height, spacing)
     
     # put frequency and transmission into separate arrays
     title = fields[y_column]
@@ -114,11 +175,12 @@ def read_csv_file(f_loc:str, x_column:int, y_column:int):
         counter = counter + 1
         freq_array[counter] = float(row[x_column])
         trans_array[counter] = float(row[y_column])
+        if z_column >= 0:
+            var_array[counter] = float(row[z_column])
     
     
     
-    
-    return freq_array, trans_array, title
+    return freq_array, trans_array, var_array, title
         
     
     
