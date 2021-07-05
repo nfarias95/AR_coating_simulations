@@ -1,21 +1,41 @@
 #This program does a simple fit of transmission data to get the thickness and index of refraction of anti-reflection coatings
+# To do: import parameters from a text file. Right now things are too confusing!
+
 
 import math
 import numpy as np
 import cmath
 import matplotlib.pyplot as plt
 import CharlesHill_PB2b_AR_optimize as Charlie
+from transmission_data_analysis import *
+
 
 def main():
 
     print("Welcome! This program calculates the index of refraction and thickness of anti-reflection coatings \nby doing a simple fit of transmission data. \nYou must provide the data file and the ranges of interest.")
 
     # DATA FILE LOCATION
-    filepath = 'C:/Users/nicol/Documents/00Research/PythonCode/AR simulation/'
-    filename = 'ctthin_transmission.txt'
+    filepath = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/July2021/"
+    filename = "date_07052021_corrected_1cyl_s_10_tr_var_th_680.csv"
+    f_loc = filepath + filename
+    
+    #select columns where data is located
+    freq_column = 2
+    data_column = 3
+    var_column = 1 # column containing a variation parameter (ex: radius, height, spacing). For simulations only. Set -1 if no parameters are varying
+    var_selection = 0
+    var_label = "?"
+    
     #Read data file
-    freq_array_raw, T_array_raw = ReadTransmissionData(filepath, filename)
-    #print(freq_array_raw)
+    freq_array_raw, T_array_raw, var_array, title = read_csv_file(f_loc, freq_column,  data_column, var_column)
+    #split data if necessary
+    if var_column >= 0:
+             freq_array_raw, T_array_raw, var_values  = split_data(var_array, freq_array_raw, T_array_raw)
+             #select one of the columns
+             T_array_raw = T_array_raw[:, var_selection]
+             var_label = str(var_values[var_selection])
+    else:
+        var_values = []
 
     #CONSTANTS
     #indices of refracion
@@ -24,34 +44,26 @@ def main():
     lt_substrate = 0.00001 # loss tangent of substrate/lens
 
     #RANGE OF EXPECTED INDEX OF REFRACTION
-    n_range = np.linspace(3.1, 3.2, num=20)
+    n_range = np.linspace(1.2, 3.2, num=40)
     #RANGE OF EXPECTED LOSS TANGENT
-    lt_range = np.linspace(0, 1e-4, num=20)
+    lt_range = np.linspace(0, 1e-6, num=20)
     
     # angle of incidence
     theta0 = 0 
 
     # thickness of samples:
     t_substrate = 0.25 * 2.54/100 # [m] thickness of alumina witness sample
-    t_ar = np.array([0.017, 0.0105]) * 2.54/100 # [m] thickness of AR layers (provided by Oliver)
-    t_ar = []
+    
+    #t_ar = np.array([0.017, 0.0105]) * 2.54/100 # [m] thickness of AR layers (provided by Oliver)
+    t_ar = np.array([680e-6])
     # Initial guess of index of refraction of ar coating
-    n_ar = np.array([math.sqrt(2), math.sqrt(5.2)])
-    n_ar = []
+    #n_ar = np.array([math.sqrt(2), math.sqrt(5.2)])
+    n_ar = [1.8]
 
     # SETUP LAYERS
-    optics_type = "lens" # either "lens" or "lenslet"
-    
-    if optics_type == "lens":
-        n_ar_flipped = np.flipud(n_ar)
-        t_ar_flipped = np.flipud(t_ar)
-        n_array = np.concatenate( [ [n_vacuum], n_ar, [n_substrate], n_ar_flipped, [n_vacuum] ])
-        
-        t_array = np.concatenate([ [0], t_ar, [t_substrate], t_ar_flipped])
-        
-    if optics_type == "lenslet":
-        n_array = np.concatenate([[n_vacuum], n_ar, [n_substrate]])
-        t_array = np.concatenate( [0], t_ar)                  
+    optics_type = "lenslet" # either "lens" or "lenslet"
+    n_array, t_array = SetupLayers(optics_type, n_ar, n_vacuum, n_substrate, t_substrate, t_ar)
+               
         
     # Initialize array of loss tangent
     lt_array = np.zeros(len(n_array))
@@ -61,12 +73,23 @@ def main():
     
     
     # SELECT FREQUENCY BAND TO BE ANALYZED
-    freq_min = 100e9 # [Hz]
-    freq_max = 200e9 # [Hz]
+    freq_array_raw = freq_array_raw * 1e9 
+    freq_min = 20e9 # [Hz]
+    freq_max = 120e9 # [Hz]
     freq_array, T_array_data = SelectFrequencyBand(freq_min, freq_max, freq_array_raw, T_array_raw)
     
+    # CHECK DATA
+    #print("Frequency: \n", freq_array)
+    #print("Transmission: \n", T_array_data)
+    #plot_results(freq_array, T_array_data, [], "Sim data", [freq_min, freq_max])
+    
+    print("\n\nn_array: \n", n_array)
+    print("t_array: ", t_array)
+    print("lt_array: ", lt_array)
+    
     #CALCULATE INITIAL GUESS
-    Freq, Tran_p, Tran_s, Refl_p, Refl_s, Abso_p, Abso_s = Charlie.calc(n_array, t_array, lt_array, freq_array)
+    #Freq, Tran_p, Tran_s, Refl_p, Refl_s, Abso_p, Abso_s = Charlie.calc(n_array, t_array, lt_array, freq_array)
+
 
     #CALCULATE BEST FIT
     Ts_array_fit, n_array_fit, lt_array_fit, error = FitDielectricConstant( T_array_data, freq_array, n_array, lt_array, t_array, 
@@ -75,7 +98,7 @@ def main():
     
     
     
-        #OUTPUT
+    #OUTPUT
     print("\n\n=-=-=-=-=-=-=-=-=-= Fit results: =-=-=-=-=-=-=-=-=-=-=")
     print("Error: ", error)
     print("Index of refraction: ", n_array_fit)
@@ -90,7 +113,7 @@ def main():
     ax.legend()
     plt.ylabel("Transmission")
     plt.xlabel("Frequency [Ghz]")
-    plt.title("Initial Data")
+    plt.title("TR = " + var_label)
     plt.ylim(0, 1.1)
     plt.show()
 
@@ -100,6 +123,37 @@ def main():
 ###############################################
 ############# END OF MAIN ####################
 ###############################################
+
+
+
+def SetupLayers(optics_type:str, n_ar:np.ndarray, n_vacuum:float, n_substrate:float, t_substrate:float, t_ar:np.ndarray):
+    """ This function creates the optics layers based on the inputs defined by the user
+
+    Args:
+        optics_type (str): [description]
+        n_ar (np.ndarray): [description]
+        n_vacuum (float): [description]
+        n_substrate (float): [description]
+        t_substrate (float): [description]
+        t_ar (np.ndarray): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    
+    if optics_type == "lens":
+        n_ar_flipped = np.flipud(n_ar)
+        t_ar_flipped = np.flipud(t_ar)
+        n_array = np.concatenate( [ [n_vacuum], n_ar, [n_substrate], n_ar_flipped, [n_vacuum] ])
+        
+        t_array = np.concatenate([ [0], t_ar, [t_substrate], t_ar_flipped])
+        
+    if optics_type == "lenslet":
+        n_array = np.concatenate([ [n_vacuum], n_ar, [n_substrate]])
+        t_array = np.concatenate( [ [0], t_ar] )   
+
+    return n_array, t_array
+
 
 def ReadTransmissionData(filepath: str, filename: str):
     """Read the transmission data with format [frequency, transmission, garbage]
@@ -178,7 +232,7 @@ def FitDielectricConstant( T_array_data, freq_array, n_array_0, lt_array_0, t_ar
     #initialize arrays for best fit results
     Ts_array_best = np.zeros(len(T_array_data))
     n_array_best = np.ones(len(n_array_0))
-    lt_array_best = np.ones(len(lt_array_0))
+    lt_array_best = np.zeros(len(lt_array_0))
     
     #initialize index of refraction and loss tangent arrays
     n_array = n_array_0
@@ -205,7 +259,7 @@ def FitDielectricConstant( T_array_data, freq_array, n_array_0, lt_array_0, t_ar
                 #CALCULATE TRANSMISSION
                 Freq, Tran_p, Tran_s, Refl_p, Refl_s, Abso_p, Abso_s = Charlie.calc(n_array, t_array, lt_array, freq_array)
                 
-                Ts_array_test = Tran_s
+                Ts_array_test = 1 - Refl_s
                 
                 #calculate error
                 error = CalculateError(T_array_data, Ts_array_test)
