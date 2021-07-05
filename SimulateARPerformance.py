@@ -4,10 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import sys
-
-# add the location of Charlie's code to this
-sys.path.append('/home/nfarias/Documents/PythonCode/ar_transmission_sims')
-
 import CharlesHill_PB2b_AR_optimize as Charlie
 
 def main():
