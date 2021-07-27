@@ -1,4 +1,5 @@
 # This code analyzes transmission data from HFSS
+# It allows you to compare transmissions with different parameters (e.g., thickness of an AR)
 import csv
 import numpy as np
 from matplotlib import pyplot as plt
@@ -12,14 +13,16 @@ def main():
     # insert file path here:
     f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/July2021/"
     # insert file name here:
-    f_name = "date_07052021_corrected_1cyl_s_10_tr_var_th_680.csv"
+    #f_name = "date07052021_corrected_1cyl_s_10_tr_var_th_270.csv"
+    f_name = "date06242021_corrected_conical_s_0_LR_0_TR_var_TH_1245.csv"
+    
     # complete file location:
     f_loc = f_path + f_name
     
     #insert desired column here:
-    freq_column = 2
-    data_column = 3
-    var_column = 1 # column containing a variation parameter (ex: radius, height, spacing). For simulations only. Set -1 if no parameters are varying
+    freq_column = 3
+    data_column = 4
+    var_column = 2 # column containing a variation parameter (ex: radius, height, spacing). For simulations only. Set -1 if no parameters are varying
     
     #insert desired frequency band here
     #band = np.array([34, 99])  # FB1 
@@ -42,7 +45,22 @@ def main():
     #print("Transmission: \n", trans_array)
        
     # Plot the data
-    plot_results(freq_array, trans_array, var_values, title, band)
+    #plot_results(freq_array, trans_array, var_values, title, band)
+    
+    
+    #Simple plot
+    plt.figure(9)
+    marker_type = ["x", ".", "o", "d"]
+    labels = ["745 um", "1245 um", "1745 um", "2245 um"]
+    for i in range(0, len(var_values)):
+            plt.scatter(freq_array, trans_array[:, i], label=labels[i], marker=marker_type[i],s=15)
+            
+    plt.xlim([50, 200])
+    plt.xlabel("Frequency [GHz]", fontname='Arial', size='13')
+    plt.ylabel("Transmission", fontname='Arial', size='13')
+    plt.title("Effect of cone height on transmission", fontname='Arial', size='15')
+    plt.legend()
+    plt.show()
     
     # Calculate statistics
     mean_transmission = np.mean( trans_array[band[0]: band[1] ])

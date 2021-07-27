@@ -16,14 +16,14 @@ def main():
 
     # DATA FILE LOCATION
     filepath = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/July2021/"
-    filename = "date_07052021_corrected_1cyl_s_10_tr_var_th_680.csv"
+    filename = "date07052021_corrected_1cyl_s_10_tr_var_th_475.csv"
     f_loc = filepath + filename
     
     #select columns where data is located
     freq_column = 2
     data_column = 3
     var_column = 1 # column containing a variation parameter (ex: radius, height, spacing). For simulations only. Set -1 if no parameters are varying
-    var_selection = 0
+    var_selection = 0 # select which of the variations we are looking at.
     var_label = "?"
     
     #Read data file
@@ -55,7 +55,7 @@ def main():
     t_substrate = 0.25 * 2.54/100 # [m] thickness of alumina witness sample
     
     #t_ar = np.array([0.017, 0.0105]) * 2.54/100 # [m] thickness of AR layers (provided by Oliver)
-    t_ar = np.array([680e-6])
+    t_ar = np.array([475e-6])
     # Initial guess of index of refraction of ar coating
     #n_ar = np.array([math.sqrt(2), math.sqrt(5.2)])
     n_ar = [1.8]
@@ -75,7 +75,7 @@ def main():
     # SELECT FREQUENCY BAND TO BE ANALYZED
     freq_array_raw = freq_array_raw * 1e9 
     freq_min = 20e9 # [Hz]
-    freq_max = 120e9 # [Hz]
+    freq_max = 200e9 # [Hz]
     freq_array, T_array_data = SelectFrequencyBand(freq_min, freq_max, freq_array_raw, T_array_raw)
     
     # CHECK DATA
