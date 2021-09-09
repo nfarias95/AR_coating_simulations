@@ -35,6 +35,7 @@ def main():
 
     # Define array with material layers
     n_array = [n_vacuum, n_ar, n_si] # index of refraction of materials
+    label = "[vacuum,  ar, si]"
     d_array = [0, t_ar] # thickness of material
     lt_array = np.array([0, 0]) # loss (tangent?)
 
@@ -46,7 +47,7 @@ def main():
     plt.figure(1)
     plt.plot(freq_array/1e9, 1-Refl_p)
     plt.ylabel("Transmission")
-    plt.title("Adapted from Charlie, [vacuum, ar, si]")
+    plt.title("Adapted from Charlie, " + label)
     plt.ylim(0, 1.1)
 
     plt.show()

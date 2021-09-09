@@ -14,20 +14,26 @@ def main():
     f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/July2021/"
     # insert file name here:
     #f_name = "date07052021_corrected_1cyl_s_10_tr_var_th_270.csv"
-    f_name = "date06242021_corrected_conical_s_0_LR_0_TR_var_TH_1245.csv"
+    #f_name = "date06242021_corrected_conical_s_0_LR_0_TR_var_TH_1245.csv"
+    f_name = "date06242021_conical_s_10_LR_0_TR_var_TH_1245.csv"
+    labels = ["60 um", "80 um", "100 um", "120 um"]
+    plot_title = "Effect of cone radius on transmission"
+    
+    
     
     # complete file location:
     f_loc = f_path + f_name
     
     #insert desired column here:
-    freq_column = 3
-    data_column = 4
-    var_column = 2 # column containing a variation parameter (ex: radius, height, spacing). For simulations only. Set -1 if no parameters are varying
+    freq_column = 4
+    data_column = 5
+    var_column = 3 # column containing a variation parameter (ex: radius, height, spacing). For simulations only. Set -1 if no parameters are varying
     
     #insert desired frequency band here
     #band = np.array([34, 99])  # FB1 
     #band = np.array([60, 162]) # FB2
-    band = np.array([77, 224]) # FB3
+    #band = np.array([77, 224]) # FB3
+    band = np.array([50 , 150])
     
     #read the data
     freq_array, trans_array, var_array, title = read_csv_file(f_loc, freq_column,  data_column, var_column)
@@ -39,7 +45,7 @@ def main():
     else:
         var_values = []
          
-    print("Size of frequency and transmission: ", len(freq_array), len(trans_array))
+    #print("Size of frequency and transmission: ", len(freq_array), len(trans_array))
        
     #print("Frequency: \n", freq_array)
     #print("Transmission: \n", trans_array)
@@ -51,15 +57,14 @@ def main():
     #Simple plot
     plt.figure(9)
     marker_type = ["x", ".", "o", "d"]
-    labels = ["745 um", "1245 um", "1745 um", "2245 um"]
     for i in range(0, len(var_values)):
             plt.scatter(freq_array, trans_array[:, i], label=labels[i], marker=marker_type[i],s=15)
             
-    plt.xlim([50, 200])
+    plt.xlim([50, 150])
     plt.xlabel("Frequency [GHz]", fontname='Arial', size='13')
     plt.ylabel("Transmission", fontname='Arial', size='13')
-    plt.title("Effect of cone height on transmission", fontname='Arial', size='15')
-    plt.legend()
+    plt.title(plot_title, fontname='Arial', size='15')
+    plt.legend(loc = 'lower right')
     plt.show()
     
     # Calculate statistics
@@ -89,7 +94,7 @@ def split_data(var_array:np.ndarray, freq_array:np.ndarray, trans_array:np.ndarr
         var = var_array[i]
         
         if var != var_old:
-            print("var: ", var)
+            #print("var: ", var)
             var_values = np.append(var_values, var)
             
         

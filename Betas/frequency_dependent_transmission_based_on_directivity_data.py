@@ -19,9 +19,13 @@ def main():
     
     print("\n\n-------------\nWelcome. Let's calculate transmissions based on directivity data!")
     
+    #LABEL 
+    label = "Silicon - Angle of Incidence = 0, Beam Size = 1mm, Box Size = 6 mm "
+    
     #INSERT FILE LOCATION HERE!
-    f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/July2021/"
-    f_name = "date07262021_directivity_angle0_silicon_sweep_158_160GHz_box6mm_beam2mm_reformatted.csv"
+    f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/August2021/"
+    #f_name = "date08032021_directivity_angle0_silicon_sweep_120_180GHz_box6mm_beam1mm_less_poinnts_new_origin_total_fields.csv"
+    f_name = "date08132021_box_6mm_Silicon_PML_120_180GHz.csv"
     f_loc = f_path + f_name
     
     #READ THE HFSS DATA
@@ -69,7 +73,9 @@ def main():
     #PLOT RESULTS
     plt.plot(freq_array, trans_array)
     plt.xlabel("Frequency [GHz]")
+    #plt.xlim([140, 157])
     plt.ylabel("Transmission")
+    plt.title(label)
     plt.show()
 
     print("\nEnd of program. \n------------\n\n")
@@ -106,7 +112,7 @@ def calculate_transmission_on_sphere(Prad:float, npoints:int, phi_array:np.ndarr
         deltaP = U * math.sin(theta_rad) * delta_theta_rad * delta_phi_rad # delta Power (power at that solid angle)
         
         #CALCULATE REFLECTED POWER
-        if theta < 90 : # above the z-plane
+        if theta > 90 : # above the z-plane
             Prefl = Prefl + deltaP
         
         # CALCULATE TRANSMITTED POWER

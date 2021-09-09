@@ -15,14 +15,14 @@ def main():
     print("Welcome! This program calculates the index of refraction and thickness of anti-reflection coatings \nby doing a simple fit of transmission data. \nYou must provide the data file and the ranges of interest.")
 
     # DATA FILE LOCATION
-    filepath = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/July2021/"
-    filename = "date07052021_corrected_1cyl_s_10_tr_var_th_475.csv"
+    filepath = "C:/Users/nicol/Documents/00Research/Data/Thermal_Sprayed_Samples/2021_august_CTS_Hayward_first_batch/"
+    filename = "120a_G_trimmed.csv"
     f_loc = filepath + filename
     
     #select columns where data is located
-    freq_column = 2
-    data_column = 3
-    var_column = 1 # column containing a variation parameter (ex: radius, height, spacing). For simulations only. Set -1 if no parameters are varying
+    freq_column = 0
+    data_column = 4 # column where the transmission power is
+    var_column = -1 # column containing a variation parameter (ex: radius, height, spacing). For simulations only. Set -1 if no parameters are varying
     var_selection = 0 # select which of the variations we are looking at.
     var_label = "?"
     
@@ -37,6 +37,14 @@ def main():
     else:
         var_values = []
 
+
+    # SELECT FREQUENCY BAND TO BE ANALYZED
+    freq_array_raw = freq_array_raw * 1e9 
+    freq_min = min(freq_array_raw) # [Hz]
+    freq_max = max(freq_array_raw) # [Hz]
+    freq_array, T_array_data = SelectFrequencyBand(freq_min, freq_max, freq_array_raw, T_array_raw)
+    
+    
     #CONSTANTS
     #indices of refracion
     n_vacuum = 1 # index of refraction of vacuum
@@ -44,9 +52,9 @@ def main():
     lt_substrate = 0.00001 # loss tangent of substrate/lens
 
     #RANGE OF EXPECTED INDEX OF REFRACTION
-    n_range = np.linspace(1.2, 3.2, num=40)
+    n_range = np.linspace(1.5, 3.8, num=40)
     #RANGE OF EXPECTED LOSS TANGENT
-    lt_range = np.linspace(0, 1e-6, num=20)
+    lt_range = np.linspace(0, 1e-4, num=40)
     
     # angle of incidence
     theta0 = 0 
@@ -54,14 +62,15 @@ def main():
     # thickness of samples:
     t_substrate = 0.25 * 2.54/100 # [m] thickness of alumina witness sample
     
-    #t_ar = np.array([0.017, 0.0105]) * 2.54/100 # [m] thickness of AR layers (provided by Oliver)
-    t_ar = np.array([475e-6])
+    # Insert measured thickness of AR layers (provided by Company)
+    t_ar = np.array([0.01932 * 2.54/100]) # 
+    t_tolerance = 0.1 # say we give a thickness tolerance of 10%
+    
     # Initial guess of index of refraction of ar coating
-    #n_ar = np.array([math.sqrt(2), math.sqrt(5.2)])
-    n_ar = [1.8]
+    n_ar = [2.378] # from Dick's measurements
 
     # SETUP LAYERS
-    optics_type = "lenslet" # either "lens" or "lenslet"
+    optics_type = "lens" # either "lens" or "lenslet"
     n_array, t_array = SetupLayers(optics_type, n_ar, n_vacuum, n_substrate, t_substrate, t_ar)
                
         
@@ -71,38 +80,51 @@ def main():
     print("Indices of refraction: \n", n_array)
     print("Thicknesses: \n", t_array)
     
-    
-    # SELECT FREQUENCY BAND TO BE ANALYZED
-    freq_array_raw = freq_array_raw * 1e9 
-    freq_min = 20e9 # [Hz]
-    freq_max = 200e9 # [Hz]
-    freq_array, T_array_data = SelectFrequencyBand(freq_min, freq_max, freq_array_raw, T_array_raw)
-    
-    # CHECK DATA
-    #print("Frequency: \n", freq_array)
-    #print("Transmission: \n", T_array_data)
-    #plot_results(freq_array, T_array_data, [], "Sim data", [freq_min, freq_max])
-    
     print("\n\nn_array: \n", n_array)
     print("t_array: ", t_array)
     print("lt_array: ", lt_array)
     
-    #CALCULATE INITIAL GUESS
-    #Freq, Tran_p, Tran_s, Refl_p, Refl_s, Abso_p, Abso_s = Charlie.calc(n_array, t_array, lt_array, freq_array)
-
-
-    #CALCULATE BEST FIT
+    #CALCULATE BEST FIT OF DIELECTRIC CONSTANT FOR THE GIVEN THICKNESS
     Ts_array_fit, n_array_fit, lt_array_fit, error = FitDielectricConstant( T_array_data, freq_array, n_array, lt_array, t_array, 
                                                 theta0, n_range, lt_range)
-    
-    
-    
     
     #OUTPUT
     print("\n\n=-=-=-=-=-=-=-=-=-= Fit results: =-=-=-=-=-=-=-=-=-=-=")
     print("Error: ", error)
     print("Index of refraction: ", n_array_fit)
-    print("Loss tangent: ", lt_array_fit)        
+    print("Loss tangent: ", lt_array_fit) 
+    
+    
+    ####### #### ITERATE ON THE GIVEN THICKNESS VALUES #######################
+    num_t = 10 # number of different thicknesses to try
+    t_ar_array = np.linspace(t_ar * (1-t_tolerance), t_ar * (1 + t_tolerance), num_t)
+    #error2_array = np.zeros(num_t)
+    print("T ar array: ", t_ar_array)
+    
+    error2_min = 999999999999
+    #print("Thickness optimization")
+    #for i in range(num_t):
+    #    t_ar = t_ar_array[i]
+        # SETUP LAYERS
+    #    optics_type = "lens" # either "lens" or "lenslet"
+    #    n_array, t_array = SetupLayers(optics_type, n_ar, n_vacuum, n_substrate, t_substrate, t_ar)
+    
+    #    Ts_array_fit2_test, n_array_fit2_test, lt_array_fit2_test, error2 = FitDielectricConstant( T_array_data, freq_array, n_array, lt_array, t_array, 
+    #                                            theta0, n_range, lt_range)
+    
+    
+    #    if error2 < error2_min:
+    #        error2_min = error2
+    #        Ts_array_fit2 = Ts_array_fit2_test
+    #        n_array_fit2 =  n_array_fit2_test
+    #        lt_array_fit2 = lt_array_fit2_test
+    #        t_ar2 = t_ar
+    
+    #print("\n\n=-=-=-=-=-=-=-=-=-= Thickness Fit results: =-=-=-=-=-=-=-=-=-=-=")
+    #print("Error 2: ", error2)
+    #print("Index of refraction 2: ", n_array_fit2)
+    #print("Loss tangent 2: ", lt_array_fit2) 
+    #print("Thickness of AR 2: ", t_ar2)
             
     #plot initial guess, data and best fit
     fig2 = plt.figure()
@@ -110,10 +132,11 @@ def main():
     ax.plot(freq_array/(10**9), T_array_data, label = "Data")
     #ax.plot(freq_array/(10**9), Ts_array_baseline, label = "Guess")
     ax.plot(freq_array/(10**9), Ts_array_fit, label = "Fit")
+    #ax.plot(freq_array/(10**9), Ts_array_fit2, label = "Fit 2")
     ax.legend()
     plt.ylabel("Transmission")
     plt.xlabel("Frequency [Ghz]")
-    plt.title("TR = " + var_label)
+    plt.title("Sample = 120")
     plt.ylim(0, 1.1)
     plt.show()
 
@@ -243,7 +266,7 @@ def FitDielectricConstant( T_array_data, freq_array, n_array_0, lt_array_0, t_ar
     
     # optimize for each layer
     for layer in range(1, len(n_array) - 1): # the first and last indeces are for vacuum, they don't count
-        #print("Layer: ", layer)
+        print("Layer: ", layer)
         
         #try different loss tangents
         for lt in lt_range:
