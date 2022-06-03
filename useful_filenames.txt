@@ -1,0 +1,109 @@
+#f_name = "date07052021_corrected_1cyl_s_10_tr_var_th_270.csv"
+#f_name = "date06242021_corrected_conical_s_0_LR_0_TR_var_TH_1245.csv" outdated?
+#f_name = "date06242021_conical_s_10_LR_0_TR_var_TH_1245.csv" - varying cone radius
+#f_name = "date07122021_cones_s_10_TH_var_TR_80_BH_0.csv" # July 2021 - varying cone height
+    #labels = ["745 \u03BCm", "1245 \u03BCm", "1745 \u03BCm", "2245 \u03BCm"]
+
+# EFFECT OF CHANGING CONE RADIUS ON TRANSMISSION
+f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/October_2021_redoing_conical_sims/"
+    f_name = "date03042022_conical_TR_var_TH_1000_s_10_selected_variations.csv"
+    labels = ["80", "120", "160", "280", "320", "400"]
+    #plot_title = "Effect of changing cone radius"
+    
+    #Columns from csv file:
+    freq_column = 4 # column containing frequency data
+    data_column = 5 # column containing the desired data (transmission) data
+    var_column = 3 # column containing a variation pa
+
+# EFFECT OF CHANGING CONE HEIGHT ON TRANSMISSION
+# f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/October_2021_redoing_conical_sims/"
+#f_name = "date09292021_conical_TR_140_TH_var_s_10.csv" #  varying height 
+    #labels = ["500 "+um, "1000 "+um, "1500 "+um, "2000 "+um, "2500 "+um, "3000 "+um]
+
+
+    #f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/July2021/"    
+    #f_name_array = ["FB1.csv", "FB2.csv", "FB3.csv"]
+    #label_array = ["FB1", "FB2", "FB3"] # corresponding label of each file
+
+#KLOPFEINSTEIN TAPER
+#f_name_array = ['K_taper_output_file_5.csv', 'K_taper_output_file_10.csv', 'K_taper_output_file_20.csv']
+#label_array = ["5", "10", "20"]
+
+
+# ----- FEBRUARY 2022 --------
+# Transmission depending on angle of incidence
+# 2 dielectrics
+f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/February2022 Angle of Incidence/"
+f_name = "date02072022_transmission_2laerdielectric_theta_var.csv"
+label_array = ["0", "15", "30", "45", "60", "75", "90"]
+plot_title = "Effect of angle of incidence on transmission"
+
+# 2 cylinders
+f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/February2022 Angle of Incidence/"
+f_name = "date02072022_transmission_F3_theta_var.csv"
+label_array = ["0", "15", "30", "45", "60", "75", "90"]
+plot_title = "Effect of angle of incidence on transmission"
+
+# silicon
+f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/February2022 Angle of Incidence/"
+f_name = "date02072022_transmission_silicon_only_theta_var.csv"
+label_array = ["0", "15", "30", "45", "60", "75", "90"]
+plot_title = "Effect of angle of incidence on transmission"
+freq_column = 2
+data_column = 3
+var_column = 1
+
+# MEASURING THE EFFECT OF CHANGING HEIGHT ON THE AVERAGE TRANSMISSION ACROSS VARIOUS ANGLES OF INCIDENCE
+# FILE LOCATION AND DESCRIPTION
+    f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/February2022 Angle of Incidence/varying_height/"
+    f_name = "date02142022_transmission_F3_h_plus10_theta_var.csv"
+    labels = ["0", "15", "30", "45", "60", "75"]
+    plot_title = "Effect of angle of incidence on transmission"
+    
+    #Columns from csv file:
+    freq_column = 4 # column containing frequency data
+    data_column = 5 # column containing the desired data (transmission) data
+    var_column = 2 # column containing a variation parameter
+
+
+# INCREASING THE HEIGHT OF F3 BY 5% TO SEE IF TRANSMISSION GETS BETTER OVER MULTIPLE ANGLES OF INCIDENCE
+f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/February2022 Angle of Incidence/varying_height_finer/"
+    f_name = "date02142022_transmission_F3_h_plus5_theta_var.csv"
+    labels = ["0", "5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70" ,"75"]
+    plot_title = "Effect of angle of incidence on transmission"
+    
+    #Columns from csv file:
+    freq_column = 4 # column containing frequency data
+    data_column = 5 # column containing the desired data (transmission) data
+    var_column = 2 # column containing a variation parameter (ex: radius, height, spacing). For simulations only. Set -1 if no parameters are varying
+
+# INCREASING THE HEIGHT OF F1 BY 5% TO SEE IF TRANSMISSION GETS BETTER OVER MULTIPLE ANGLES OF INCIDENCE
+f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/February2022 Angle of Incidence/varying_height_finer/"
+    f_name = "date02142022_transmission_F1_h_plus5_theta_var.csv"
+    labels = ["0", "5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70" ,"75"]
+    plot_title = "Effect of angle of incidence on transmission"
+    
+    #Columns from csv file:
+    freq_column = 4 # column containing frequency data
+    data_column = 5 # column containing the desired data (transmission) data
+    var_column = 2 # column containing a variation parameter (ex: radius, height, spacing). For simulations only. Set -1 if no parameters are varying
+    
+# F1 at different angles of incidence    
+    # f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/February2022 Angle of Incidence/f1_f2_f3/"
+    # f_name = "date02152022_transmission_F1_theta_var.csv"
+    # labels = ["0", "5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70" ,"75"]
+    # plot_title = "Effect of angle of incidence on transmission"
+
+
+# two dielectric layers, multiple angles of incidence# FILE LOCATION AND DESCRIPTION    
+    f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/February2022 Angle of Incidence/varying_height_finer/"
+    f_name = "2layer_dielectric/date02222022_transmission_2laerdielectric_theta_var_fine.csv"
+    labels = ["0", "5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70" ,"75"]
+    plot_title = "Effect of angle of incidence on transmission - 2-dielectic layers"
+    
+    #Columns from csv file:
+    freq_column = 2 # column containing frequency data
+    data_column = 3 # column containing the desired data (transmission) data
+    var_column = 1 # column containing a variation parameter
+
+

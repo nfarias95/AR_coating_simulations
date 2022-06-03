@@ -1,0 +1,50 @@
+    # f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/February2022 Angle of Incidence/varying_height_finer/"
+    # f_name_roots = ["date02142022_transmission_F3_theta_var_", "date02142022_transmission_F3_h_plus5_theta_var_",
+    #                 "date02142022_transmission_F3_h_plus10_theta_var_"]#,
+    #                #"date02142022_transmission_F3_h_plus20_theta_var_"] #, "date02142022_transmission_F3_h_minus10_theta_var_",
+    #                #"date02142022_transmission_F3_h_minus20_theta_var_"]
+    # root_label = ["Nominal", "+5%" ,"+10%", "+20%", "-10%", "-20%"]
+    # bands = np.array([[77, 224], [77, 224], [77, 224], [77, 224], [77, 224], [77, 224]])    
+    
+    f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/February2022 Angle of Incidence/varying_height_finer/"
+    f_name_roots = ["date02142022_transmission_F3_theta_var_", "date02142022_transmission_F3_h_plus5_theta_var_"]
+    root_label = ["F3 Nominal", "+5%"]
+    bands = np.array([[77, 224], [77, 224]])
+    
+    f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/February2022 Angle of Incidence/varying_height_finer/"
+    f_name_roots = ["date02152022_transmission_F2_theta_var_", "date02142022_transmission_F2_h_plus5_theta_var_"]
+    root_label = ["F2 Nominal", "+5%"]
+    bands = np.array([[60, 162], [60, 162]])
+    
+    f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/February2022 Angle of Incidence/varying_height_finer/"
+    f_name_roots = ["date02152022_transmission_F1_theta_var_", "date02142022_transmission_F1_h_plus5_theta_var_"]
+    root_label = ["F1 Nominal", "+5%"]
+    bands = np.array([[34,99], [34,99]])
+    
+    f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/February2022 Angle of Incidence/varying_height_finer/"
+    f_name_roots = ["date02152022_transmission_F1_theta_var_", "date02142022_transmission_F1_h_plus5_theta_var_",
+                    "date02152022_transmission_F2_theta_var_", "date02142022_transmission_F2_h_plus5_theta_var_",
+                    "date02142022_transmission_F3_theta_var_", "date02142022_transmission_F3_h_plus5_theta_var_"]
+    root_label = ["F1 N", "F1 +5%", "F2 N", "F2 +5%", "F3 N", "F3 + 5%"]
+    bands = np.array([F1, F1, F2, F2, F3, F3])
+
+    # f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/February2022 Angle of Incidence/f1_f2_f3/"               
+    # f_name_roots = ["date02152022_transmission_F1_theta_var_", "date02152022_transmission_F2_theta_var_",
+    #                 "date02142022_transmission_F3_theta_var_"]
+    # root_label = ["F1", "F2", "F3"]
+    # bands = np.array( [[34,99], [60, 162], [77, 224]])
+
+    # USED IN PAPER! F3 over angles of incidence for multiple depths increments
+    #insert file path and name here
+    f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/February2022 Angle of Incidence/varying_height_finer/"
+    f_name_roots = ["date02142022_transmission_F3_theta_var_", "date02142022_transmission_F3_h_plus5_theta_var_",
+                    "date02142022_transmission_F3_h_plus10_theta_var_", "date02142022_transmission_F3_h_plus20_theta_var_"]
+    root_label = ["Nominal", "+5%", "+10%", "+20%"]
+    bands = np.array([F3, F3, F3, F3])
+
+    # comparing to dielectric layer
+    f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/February2022 Angle of Incidence/varying_height_finer/"
+    f_name_roots = ["2layer_dielectric/date02222022_transmission_2laerdielectric_theta_var_fine_", "date02142022_transmission_F3_theta_var_", "date02142022_transmission_F3_h_plus5_theta_var_",
+                    "date02142022_transmission_F3_h_plus10_theta_var_", "date02142022_transmission_F3_h_plus20_theta_var_"]
+    root_label = ["2-layer dielectric", "Nominal", "+5%", "+10%", "+20%"]
+    bands = np.array([F3, F3, F3, F3, F3])

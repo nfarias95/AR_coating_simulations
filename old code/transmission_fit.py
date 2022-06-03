@@ -288,7 +288,7 @@ def FitDielectricConstant( T_array_data, freq_array, n_array_0, lt_array_0, t_ar
                 error = CalculateError(T_array_data, Ts_array_test)
                 #print("Minimum Error: %.4f Error: %.4f" %(min_error, error))
                 
-                #keep the setting with smallest error
+                #keep the setting with smallest error # 
                 if error < min_error:
                     #print("Better!!!")
                     Ts_array_best = Ts_array_test

@@ -3,37 +3,46 @@
 import csv
 import numpy as np
 from matplotlib import pyplot as plt
-
+from matplotlib import rc
+from useful_functions import *
 
 # MAIN
+SAVE_DATA = False
+
+# PLOT PARAMETERS
+FONT_SIZE = 20
+LEGEND_SIZE = 18
+PLOT_95_LINE = True
+
+# set plot font
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams.update({'font.size': FONT_SIZE})
+plt.rc('legend', fontsize=LEGEND_SIZE)    # legend fontsize
+#fig = plt.figure(figsize=(8,6))
+um = "\u03BCm"
+
 def main():
-    
     print("Welcome. We'll read transmission data")
     
-    # insert file path here:
-    f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/July2021/"
-    # insert file name here:
-    #f_name = "date07052021_corrected_1cyl_s_10_tr_var_th_270.csv"
-    #f_name = "date06242021_corrected_conical_s_0_LR_0_TR_var_TH_1245.csv"
-    f_name = "date06242021_conical_s_10_LR_0_TR_var_TH_1245.csv"
-    labels = ["60 um", "80 um", "100 um", "120 um"]
-    plot_title = "Effect of cone radius on transmission"
+    # FILE LOCATION AND DESCRIPTION    
+    f_path = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/October_2021_redoing_conical_sims/"
+    f_name = "date03042022_conical_TR_var_TH_1000_s_10_selected_variations.csv"
+    labels = ["80 " + um, "120 " + um, "160 " + um, "280 " + um, "320 " + um, "400 " + um]
+    #plot_title = "Effect of changing cone radius"
     
-    
-    
-    # complete file location:
-    f_loc = f_path + f_name
-    
-    #insert desired column here:
-    freq_column = 4
-    data_column = 5
+    #Columns from csv file:
+    freq_column = 4 # column containing frequency data
+    data_column = 5 # column containing the desired data (transmission) data
     var_column = 3 # column containing a variation parameter (ex: radius, height, spacing). For simulations only. Set -1 if no parameters are varying
+    
+    # GET COMPLETE FILE LOCATION:
+    f_loc = f_path + f_name
     
     #insert desired frequency band here
     #band = np.array([34, 99])  # FB1 
     #band = np.array([60, 162]) # FB2
     #band = np.array([77, 224]) # FB3
-    band = np.array([50 , 150])
+    band = np.array([50 , 250])
     
     #read the data
     freq_array, trans_array, var_array, title = read_csv_file(f_loc, freq_column,  data_column, var_column)
@@ -45,25 +54,34 @@ def main():
     else:
         var_values = []
          
-    #print("Size of frequency and transmission: ", len(freq_array), len(trans_array))
-       
-    #print("Frequency: \n", freq_array)
-    #print("Transmission: \n", trans_array)
-       
-    # Plot the data
-    #plot_results(freq_array, trans_array, var_values, title, band)
     
     
     #Simple plot
-    plt.figure(9)
-    marker_type = ["x", ".", "o", "d"]
+    plt.figure(9, figsize=(8,6.5))
+    #marker_type = ["."]
+    marker_type = ["x", ".", "o", "d", "v", "*", ">"]
     for i in range(0, len(var_values)):
-            plt.scatter(freq_array, trans_array[:, i], label=labels[i], marker=marker_type[i],s=15)
+            plt.plot(freq_array, trans_array[:, i], label=labels[i], marker=marker_type[i], markersize=5)
+            # save the data if you want
+            if SAVE_DATA:
+                print("fpath + labels[i]", f_path + labels[i])
+                output_file_name = f_name[0:-4] + "_" + labels[i] + ".csv"
+                write_data_to_csv_files(freq_array, trans_array[:,i], "freq [ghz]", "transmission",  output_file_name, f_path )
             
-    plt.xlim([50, 150])
-    plt.xlabel("Frequency [GHz]", fontname='Arial', size='13')
-    plt.ylabel("Transmission", fontname='Arial', size='13')
-    plt.title(plot_title, fontname='Arial', size='15')
+    # Plot line at 95%
+    if PLOT_95_LINE:
+        xmin = 50
+        xmax = 250
+        x95 = np.linspace( xmin, xmax, 3)
+        y95 = 0.95 * np.ones(3)
+        #plt.plot(x95, y95, '--', markersize=0.00001, color='k')  
+        #plt.axhline(y=0.95, color = 'k', linestyle='--', linewidth = 0.5)
+        plt.axhline(y=0.95, color = 'k', linestyle='--', markersize=0.00001)
+        
+        plt.xlim([xmin, xmax])
+    plt.xlabel("Frequency [GHz]")
+    plt.ylabel("Transmittance")
+    #plt.title(plot_title,  size='15')
     plt.legend(loc = 'lower right')
     plt.show()
     
@@ -120,16 +138,16 @@ def split_data(var_array:np.ndarray, freq_array:np.ndarray, trans_array:np.ndarr
     
 def plot_results(freq_array, trans_array, var_values, title, band):
     
-    plt.figure(10)
+    plt.figure(10, figsize=(8,6))
     if len(var_values) > 0:
         for i in range(0, len(var_values)):
             plt.scatter(freq_array, trans_array[:, i], label=str(var_values[i]))
     else:
         plt.scatter(freq_array, trans_array)
         
-    plt.xlabel("Frequency [GHz]")
-    plt.ylabel("Transmission")
-    plt.title(title)
+    plt.xlabel("Frequency [GHz]", fontname="Times New Roman")
+    plt.ylabel("Transmission", fontname="Times New Roman")
+    #plt.title(title, fontname="Times New Roman")
     plt.legend()
     
     # add a line at 95%
@@ -159,7 +177,7 @@ def read_csv_file(f_loc:str, x_column:int, y_column:int, z_column:int):
     rows = []
     
     with open(f_loc, 'r') as csvfile:
-        print("Reading data")
+        #print("Reading data")
         #creating a csv reader object
         csvreader = csv.reader(csvfile)
         
@@ -171,20 +189,20 @@ def read_csv_file(f_loc:str, x_column:int, y_column:int, z_column:int):
             rows.append(row)
             
         #get total number of rows
-        print("\nTotal number of rows: %d " % (csvreader.line_num))
+        #print("\nTotal number of rows: %d " % (csvreader.line_num))
         
     # printing th field names
-    print('\nField names are: ' + ', ' .join(field for field in fields))
+    #print('\nField names are: ' + ', ' .join(field for field in fields))
     
     # printing first 5 rows
-    print("\n First 5 rows are: \n")
-    counter = -1
-    for row in rows[:5]:
-       counter = counter + 1
-       print(rows[counter])
-       #for col in row:
-           #print("%10s " % col)
-       print('\n')
+    #print("\n First 5 rows are: \n")
+    # counter = -1
+    # for row in rows[:5]:
+    #    counter = counter + 1
+    #    print(rows[counter])
+    #    #for col in row:
+    #        #print("%10s " % col)
+    #    print('\n')
         
         
     freq_array = np.zeros(csvreader.line_num -1) # frequency array
