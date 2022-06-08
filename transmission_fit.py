@@ -2,10 +2,11 @@
 # Author: Nicole Farias
 # Last updated: 09 09 2021
 
-# TODOs:
-# 1 - allow all lts to be inserted from json file 
-# 1.1 - setup the lts array in the "Setup Layers" function
-# 2 - allow for 2 layers of coatings (see Fit function)
+#Reads a transmission file outputted by HFSS
+#Selects a range of indices of refraction to look at, example 1-3.4
+#It calculates the transmission of a AR layer with each of those indices (Hou)
+#Finds which index gives transmission closer to HFSS data
+
 
 import math
 import numpy as np
@@ -20,44 +21,32 @@ N_VACUUM = 1
 
 # PLOT RESULTS
 PLOT_INITIAL_GUESS = False
-PLOT_FIT_AND_GUESS = False
+PLOT_FIT_AND_GUESS = True
+
+# INSERT FILE PATH AND FILENAMES HERE
+filepath = "C:/Users/nicol/Documents/00Research/PythonCode/AR_coating_simulations/"
+filenames = ["example"] # CAN BE ARRAY OF FILENAMES, e.g: [datafile1, datafile2]. Do not include filetype (must be csv)
+
+#IMPORTANT: EACH FILE MUST HAVE A CORRESPONDING JSON FILE. PLEASE USE "make_json.py" IF JSON FILE IS NOT AVAILABLE FOR YOUR DATA
 
 def main():
     
     print("\n\nWelcome! This program calculates the index of refraction and thickness of anti-reflection coatings \nby doing a simple fit with many for loops :P ")
-    
-    # fit parameters
-    tol = 0.2 # 20%
-    N = 100 # number of data points to be analyzed per fit.
-    
-    # DATA FILE LOCATIONS
+
+    # set up reading of data
     ftype = ".csv"
-    filepath = "C:/Users/nicol/Documents/00Research/Data/MetamaterialSims/March2022 Effective Index/"
     
-    filenames = ["date03142022_single_layer_cylinder_td_60_h_270", "date03142022_single_layer_cylinder_td_60_h_475", 
-                 "date03142022_single_layer_cylinder_td_60_h_680", "date03142022_single_layer_cylinder_td_80_h_270",
-                 "date03142022_single_layer_cylinder_td_80_h_475", "date03142022_single_layer_cylinder_td_80_h_680",
-                 "date03142022_single_layer_cylinder_td_100_h_270", "date03142022_single_layer_cylinder_td_100_h_475",
-                 "date03142022_single_layer_cylinder_td_100_h_680", "date03142022_single_layer_cylinder_td_120_h_270",
-                 "date03142022_single_layer_cylinder_td_120_h_475", "date03142022_single_layer_cylinder_td_120_h_680",
-                 "date03142022_single_layer_cylinder_td_140_h_270", "date03142022_single_layer_cylinder_td_140_h_475",
-                 "date03142022_single_layer_cylinder_td_140_h_680", "date03142022_single_layer_cylinder_td_160_h_270",
-                 "date03142022_single_layer_cylinder_td_160_h_475", "date03142022_single_layer_cylinder_td_160_h_680"] 
-    
-    
-    filenames = ["date03142022_single_layer_cylinder_td_160_h_475"]
-    # going over each file
+    # going over each data file 
     for filename in filenames:
         print("\nFilename: ", filename)
-        f_loc = filepath + filename + ftype
-        json_loc = filepath + filename + '.txt'
+        f_loc = filepath + filename + ftype # location of data file
+        json_loc = filepath + filename + '.txt' # location of json file with parameters for analysis
         
         # JASON FILE LOCATION
         with open(json_loc) as json_file:
-            D = json.load(json_file) # data
-            #print(D)
-            #print(data['filename'])
-        
+            D = json.load(json_file) # data from json file. this holds all parameters for the simulation
+            
+
         # READ THE DATA FILE
         if ftype == ".csv":
             freq_array_raw, T_array_raw, var_array, title = read_csv_file(f_loc, D['freq_column'],  D['data_column'], D['var_column'])
@@ -88,6 +77,11 @@ def main():
         Ts_array_guess = 1 - Refl_s
         guess_error = CalculateError(T_array_data, Ts_array_guess)
 
+        #PRINT INTIAL GUESS:
+        print("Starting guess: ")
+        print("Indices of refracion: ", n_array)
+        print("Thickness: ", t_array)
+
         #PLOT THE INITIAL GUESS
         if PLOT_INITIAL_GUESS:
             print("\n--------\nInitial guess: ")
@@ -97,7 +91,7 @@ def main():
             print("Error: ", guess_error)
             print("\n ------- \n ")
             plt.figure(1)
-            plt.plot(freq_array/1e9, T_array_data, label="Data")
+            plt.plot(freq_array/1e9, T_array_data, 'o', label="Data")
             plt.plot(freq_array/1e9, Ts_array_guess, label="Guess")
             plt.legend()
             plt.ylabel("Transmission Power")
@@ -107,13 +101,13 @@ def main():
 
         # CALCULATE THE BEST FIT
         theta0 = np.pi/180*D['inc_angle'] # the incidence angle
-        Ts_array_fit, n_array_fit, lt_array_fit, t_array_fit, error = FitDielectricConstant( T_array_data, freq_array, D, t_ar, n_ar, theta0, N, tol)
+        Ts_array_fit, n_array_fit, lt_array_fit, t_array_fit, error = FitDielectricConstant( T_array_data, freq_array, D, t_ar, n_ar, theta0, D['N'], D['tol'])
 
         # PLOT FIT AND DATA
         if PLOT_FIT_AND_GUESS:
             plt.figure(2)
-            plt.plot(freq_array/1e9, T_array_data, label="Data")
-            plt.plot(freq_array/1e9, Ts_array_fit, label="Fit")
+            plt.plot(freq_array/1e9, T_array_data, 'o',  label="Data")
+            plt.plot(freq_array/1e9, Ts_array_fit, '.-', label="Fit")
             plt.plot(freq_array/1e9, Ts_array_guess, label="Guess")
             plt.legend()
             plt.ylabel("Transmission Power")
@@ -123,10 +117,10 @@ def main():
         
         # PRINT RESULTS
         print("\n----\nFit Results")
-        print(D['data_label'])
-        print("N array: ", n_array_fit)
-        print("lt_array_fit", lt_array_fit)
-        print("t_array_fit: ", t_array_fit)
+        print("Description: ", D['data_label'])
+        print("Indices of refraction: ", n_array_fit)
+        print("Loss tangent:", lt_array_fit)
+        print("Thicknesses [um]: ", t_array_fit*1e6)
         #print("error: ", error)
         print("----\n")
         
