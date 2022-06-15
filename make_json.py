@@ -26,11 +26,11 @@ x = {
     't_substrate' : 9999,  # thickness of substrate [meters] (doesn't matter for lenslet, since the silicon is assumed to be infinitely thick in one direction)
     'n_ar_1' : 1.7, #  approximate index of refraction of coating (actual value can be found with fit)
     'n_ar_2' : -1, # approximate index of refraction of second coating (if single layer, write -1)
-    't_ar_1' : 475e-6, # thickness of coating #1 MAKE THIS THE SAME AS YOUR METAMATERIAL HEIGHT (e.g., hole depth)
-    't_ar_2' : -1, # thickness of AR coating #2 (n/a if single layer, write -1)
+    't_ar_1' : 475e-6, # thickness of coating [m] #1 MAKE THIS THE SAME AS YOUR METAMATERIAL HEIGHT (e.g., hole depth)
+    't_ar_2' : -1, # thickness of AR coating [m] #2 (n/a if single layer, write -1)
     # FIT PARAMETERS
     'tol':  0.2, # tolerance: how far we can be from original guess. range: 0-1
-    'N':  100 # number of data points to be analyzed per fit. the more, the more accurate and also the slower!
+    'N':  200 # number of data points to be analyzed per fit. the more, the more accurate and also the slower!
     
 }
 

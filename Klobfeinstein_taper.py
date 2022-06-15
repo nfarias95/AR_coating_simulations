@@ -16,29 +16,45 @@ import CharlesHill_PB2b_AR_optimize as Charlie
 from useful_functions import *
 import csv
 
+WRITE_OUTPUT_DATA = False # save data in csv file?
+
+# PLOT SETTINGS
+FONT_SIZE = 13
+plt.rcParams.update({"font.family": "Times New Roman"})
+plt.rcParams.update({'font.size': FONT_SIZE})
+#fig = plt.figure(figsize=(8,6))
+um = "\u03BCm"
+
 def main():
-    plt.rcParams.update({"font.family": "Times New Roman"})
-    um = "\u03BCm"
+
     
     print("\n-----------------------------------\n\nWelcome! \nLet's calculate the Klobfeinstein taper!")
     
-    Zsilicon = calculate_Z_from_n(3.4)
+    # CONSTANTS
+    # materials setting
+    npoints = 10#50 # number of points in impedance calculation
+    n_si = 3.4 # index of refraction of silicon
+    n_va = 1 # index of refraction of vacuum
+    
+    # transmission results settings
+    Gamma_m = 0.05
+    epsilon_e = 3.4**2 
+    freq_cut = 20e9#16e9 # to determine the taper lenght
+    
+    min_freq = 30e9 # Hz (to plot frequency response)
+    max_freq = 230e9 # Hz (to plot frequency response)
+    n_freq_points = 100 # number of points to be plotted in frequency response
+    
+    # Calculate impedance
+    Zsilicon = calculate_Z_from_n(n_si)
     Zvacuum = calculate_Z_from_n(1)
     print("Impedance of silicon: ", int(Zsilicon))
     print("Impedance of vacuum: ", int(Zvacuum))
     
-    
-    # CONSTANTS
-    npoints = 50 # number of points in impedance calculation
+
+    # START OF CALCULATIONS
     Zl = Zvacuum
     Zs = Zsilicon
-    Gamma_m = 0.05
-    epsilon_e = 3.4**2
-    freq_cut = 16e9 # to determine the taper lenght
-    min_freq = 50e9 # Hz (to plot)
-    max_freq = 250e9 # Hz (to plot)
-    n_freq_points = 100 # number of points to be plotted in frequency response
-    
     # Calculate A
     rho_0 = calculate_rho0(Zl, Zs)
     print("rho_0: ", rho_0)
@@ -49,13 +65,11 @@ def main():
     #find the length of the microstrip:
     #from libre text	length = A * lambda(min freq in band) /(2*pi*sqrt(epsilon_e))
     lambda_max = c/freq_cut #in meters
-    l = A * lambda_max / (2*pi*sqrt(epsilon_e) )
-    print("Lenght of microstrip: %.2f microns" % (l*1e6) )
+    l = A * lambda_max / (2*pi*sqrt(epsilon_e) ) #  length of microstrip [m]
+    print("\nLenght of microstrip: %.2f microns\n" % (l*1e6) )
     
     z_array = np.linspace(-l/2, l/2, npoints)
-    #z_array = np.linspace(0, l, npoints)
     
-
     # plot phi to see if things are going ok. looks ok
     #plot_phi()
     
@@ -74,160 +88,72 @@ def main():
     
     # calculate index of refraction at each point
     n_array = calculate_n_from_Z(Z0_array)
+        
     
-    plt.figure(1)
-    plt.scatter(z_array, Z0_array)
-    plt.xlabel("z (microns)")
-    plt.ylabel("Z0")
-    plt.grid()
+    # NOW CALCULATE THE FREQUENCY RESPONSE
+    transmission_array, freq_array = calculate_transmission_from_Z(Z0_array[0:-1], l, min_freq, max_freq, n_freq_points) # ignore the last point
+
+    print("\nLenght of microstrip: %.2f microns\n" % (l*1e6) )
+    print("Indices of refraction: ", n_array)
+    
+    # write data to csv file
+    if WRITE_OUTPUT_DATA:
+        folder = 'C:/Users/nicol/Documents/00Research/PythonCode/AR_coating_simulations/output_files/'
+        fname = 'K_taper_output_file_june2022_test.csv'
+        write_data_to_csv_files(freq_array / 1e9, transmission_array, "freq [GHz]", "transmission", fname, folder)
+  
+
+    # OPTIMIZE TRANSMISSION IF WE WANT TO TRY THAT - Nicole: let me ignore that for a second
+    # n1 = 1
+    # n2 = 3.4
+    # freq_band = [77e9, 224e9]
+    # optimize_transmission_in_band(n1, n2, freq_band, Gamma_m)  
+    
+    # PLOT THINGS
+    # plt.figure(1)
+    # plt.scatter(z_array, Z0_array)
+    # plt.xlabel("z (microns)")
+    # plt.ylabel("Z0")
+    # plt.grid()
     
     plt.figure(2)
-    plt.scatter(z_array[0:-1] + l/2, n_array[0:-1])
+    plt.scatter( (z_array[0:-1] + l/2)*1e6, n_array[0:-1])
     plt.xlabel("z " + "um")
     plt.ylabel("n")
     plt.grid()
     
-    
-    # NOW CALCULATE THE FREQUENCY RESPONSE
-    
-    transmission_array, freq_array = calculate_transmission_from_Z(Z0_array[0:-1], l, min_freq, max_freq, n_freq_points) # ignore the last point
     plt.figure(4)
     plt.plot(freq_array/1e9, transmission_array)
     plt.ylabel("Transmission")
-    plt.title("Transmission of Klobfeinstein taper")
+    plt.title("Transmission of Klopfeinstein taper")
     plt.xlabel("Frequency [GHz]")
+    plt.grid()
     
-    # write data to csv file
-    folder = 'C:/Users/nicol/Documents/00Research/PythonCode/AR_coating_simulations/output_files/'
-    fname = 'K_taper_output_file.csv'
-    write_data_to_csv_files(freq_array / 1e9, transmission_array, "freq [GHz]", "transmission", fname, folder)
-    
-    
-    # OPTIMIZE TRANSMISSION IF WE WANT TO TRY THAT
-    n1 = 1
-    n2 = 3.4
-    freq_band = [77e9, 224e9]
-    optimize_transmission_in_band(n1, n2, freq_band, Gamma_m)
-    
-    
-    
-    #freq_array = np.linspace(min_freq, max_freq, npoints)
-    
-    # Calculate Beta
-    # from excel spreadsheet from https://www.microwaves101.com/encyclopedias/klopfenstein-taper, beta = A/l
-    #beta = A/l # rad/cm
-    #lambda0 = 2*pi/beta   this kinda weird because they are calculating frequency as opposed to setting a fixed frequency
-    
-    # let~s try this:
-    #lambda_array = c/freq_array
-    #beta_array = 2*pi/lambda_array
-    
-    #reflection_array = np.zeros(len(beta_array))
-    
-    # from https://www.researchgate.net/publication/325569490_Design_of_a_Klopfenstein_Taper_for_Impedance_Matching_of_a_High-Speed_Photodetector
-    # reflection = reflection_0 * sqrt( (beta*l)^2 - (A)^2)/cosh(A)
-    # assuming reflection_0 is our rho
-    # i=0
-    # for beta in beta_array:
-    #     refl = rho_0 * cos(sqrt( abs( (beta*l)**2 - (A)**2) ) /cosh(A) )
-    #     reflection_array[i] = refl 
-        
-    #     i=i+1   
-
-    # plt.figure(3)
-    # plt.plot(freq_array/1e9, reflection_array)
-    # plt.xlabel("Frequency [GHz]")
-    # plt.ylabel("Reflection")
     
     plt.show()
-    
-
-
     print("The end.")
-    
+    return 0
     
     
 ##########################################################
 ##########################################################
 ##########################################################
-
-def optimize_transmission_in_band(n1, n2, freq_band, Gamma_m):
-    print("Optimizing transmission... \n")
-    
-    npoints = 50 # number of "layers"
-    n_freq_points = 100
-    
-    freq_start = freq_band[0] * 0.1 # where we start scanning
-    
-    # calculate the impedances
-    Z1 = calculate_Z_from_n(n1)
-    Z2 = calculate_Z_from_n(n2)
-    
-    # calculate epsilon equivalent
-    epsilon_e = n2**2
-    
-    # Calculate A
-    rho_0 = calculate_rho0(Z1, Z2)
-    print("rho_0: ", rho_0)
-    A = calculateA(rho_0, Gamma_m)
-    print("A: ", A)
-    
-    # start going over different start frequencies
-    freq = freq_start
-    max_ave_trans = 0 # initial value of average transmission
-    
-    print("\n Starting loop \n")
-    
-    while freq <= freq_band[0]:
-        #find the length of the microstrip:
-        #from libre text	length = A * lambda(min freq in band) /(2*pi*sqrt(epsilon_e))
-        lambda_max = c/freq #in meters
-        l = A * lambda_max / (2*pi*sqrt(epsilon_e) )
-    
-        z_array = np.linspace(-l/2, l/2, npoints)
-        Z0_array = np.zeros(npoints)
-
-        
-        
-        # CALCULATE THE IMPEDANCE AT EACH POINT. this might be ok outside of loop
-        for i in range(0, npoints):
-            z = z_array[i]
-            Z0 = calculate_Z0(z, Z1, Z2, rho_0, l, A)
-            Z0_array[i] = Z0
-    
-        # calculate transmission
-        transmission_array, freq_array = calculate_transmission_from_Z(Z0_array[0:-1], l, freq_band[0], freq_band[1], n_freq_points) # ignore the last point
-        ave_trans = np.mean(transmission_array)
-        #print("Freq start: ", freq/1e9, "T: ", ave_trans)
-        
-        if ave_trans > max_ave_trans and l*1e6 < 3000:
-            print("Hey! Freq: ", freq/1e9)
-            print("l : ", l*1e6)
-            max_ave_trans = ave_trans
-            best_freq_start = freq
-                #Plot results
-        
-            plt.figure(5)
-            plt.plot(freq_array/1e9, transmission_array)
-            plt.ylabel("Transmission")
-            plt.title("Transmission of Klobfeinstein taper")
-            plt.xlabel("Frequency [GHz]")
-    
-        # update freq
-        freq = freq + 0.5e9 # one gigaheartz at a time
-        #print("freq: ", freq)
-    
-    print("Best freq start: ", best_freq_start/1e9)
-    
-    print("Done Optimizing")
-    return(0) # return transmission
-    
-
-
 
 
 
 def calculate_transmission_from_Z(Z_array, l, freq_min, freq_max, n_freq_points):
+    """Function to calculate the transmission of a taper 
+
+    Args:
+        Z_array (_type_): _description_
+        l (_type_): length of microstrip
+        freq_min (_type_): min freq in band that we care about
+        freq_max (_type_): max freq in band that we care about
+        n_freq_points (_type_): number of points in frequency domain that we want to calculate
+
+    Returns:
+        _type_: _description_
+    """
     
     # initialize frequency array
     freq_array = np.linspace(freq_min, freq_max, n_freq_points) # in Hertz
@@ -357,6 +283,78 @@ def calculateA( rho_0, Gamma_m):
     A = acosh( rho_0/ Gamma_m)
     return A
     
+    
+    
+def optimize_transmission_in_band(n1, n2, freq_band, Gamma_m):
+    print("Optimizing transmission... \n")
+    
+    npoints = 50 # number of "layers"
+    n_freq_points = 100
+    
+    freq_start = freq_band[0] * 0.1 # where we start scanning
+    
+    # calculate the impedances
+    Z1 = calculate_Z_from_n(n1)
+    Z2 = calculate_Z_from_n(n2)
+    
+    # calculate epsilon equivalent
+    epsilon_e = n2**2
+    
+    # Calculate A
+    rho_0 = calculate_rho0(Z1, Z2)
+    print("rho_0: ", rho_0)
+    A = calculateA(rho_0, Gamma_m)
+    print("A: ", A)
+    
+    # start going over different start frequencies
+    freq = freq_start
+    max_ave_trans = 0 # initial value of average transmission
+    
+    print("\n Starting loop \n")
+    
+    while freq <= freq_band[0]:
+        #find the length of the microstrip:
+        #from libre text	length = A * lambda(min freq in band) /(2*pi*sqrt(epsilon_e))
+        lambda_max = c/freq #in meters
+        l = A * lambda_max / (2*pi*sqrt(epsilon_e) )
+    
+        z_array = np.linspace(-l/2, l/2, npoints)
+        Z0_array = np.zeros(npoints)
+
+        
+        
+        # CALCULATE THE IMPEDANCE AT EACH POINT. this might be ok outside of loop
+        for i in range(0, npoints):
+            z = z_array[i]
+            Z0 = calculate_Z0(z, Z1, Z2, rho_0, l, A)
+            Z0_array[i] = Z0
+    
+        # calculate transmission
+        transmission_array, freq_array = calculate_transmission_from_Z(Z0_array[0:-1], l, freq_band[0], freq_band[1], n_freq_points) # ignore the last point
+        ave_trans = np.mean(transmission_array)
+        #print("Freq start: ", freq/1e9, "T: ", ave_trans)
+        
+        if ave_trans > max_ave_trans and l*1e6 < 3000:
+            print("Hey! Freq: ", freq/1e9)
+            print("l : ", l*1e6)
+            max_ave_trans = ave_trans
+            best_freq_start = freq
+                #Plot results
+        
+            plt.figure(5)
+            plt.plot(freq_array/1e9, transmission_array)
+            plt.ylabel("Transmission")
+            plt.title("Transmission of Klobfeinstein taper")
+            plt.xlabel("Frequency [GHz]")
+    
+        # update freq
+        freq = freq + 0.5e9 # one gigaheartz at a time
+        #print("freq: ", freq)
+    
+    print("Best freq start: ", best_freq_start/1e9)
+    
+    print("Done Optimizing")
+    return(0) # return transmission
 
 
 
